@@ -1,0 +1,40 @@
+type Book
+    @model(subscriptions:null)
+    @auth(
+        rules:[
+            #allow admins to create, update and delete books
+            {allow:groups,groups:['Admin']}
+            #Allow all authonticated
+            {allow:private, operations:[read]}
+            #Allow all guest users -not autonticated, to view books
+            {allow:public,operations:[read]}
+        ]
+    ){
+        id:ID!
+        title:String!
+        description:String
+        image:String
+        author:String
+        featured:Boolean
+        price:Float
+        orders:[BookOrder] @connection(keyName:"byBook",fields:["id"])
+
+    }
+
+ type BookOrder
+    @model(queries: null,subscriptions: null)
+    @key(name: "byBook",fields:[ "book_id", "order_id"])
+    @key(name: "byOrder", fields:[ "order_id", "book_id"])
+    @auth(
+        rules:[
+            {allow: awner, identityClaim: "email", ownerField: "customer"}
+        ]
+
+    ){
+        id:ID!
+        book_id:ID!
+        order_id:ID!
+        book:Book @connection(fields:["book_id"])
+        order:Order @connection(fields:["order_id"])
+    }
+
